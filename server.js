@@ -23,6 +23,14 @@ mongoose
 // npm i eslint prettier eslint-config-prettier eslint-plugin-prettier eslint-config-airbnb eslint-plugin-node eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-react --save-dev
 
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`listening at http://localhost:${port}`);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.log(err.name, err.message);
+  console.log('UNHANDLED REJECTION! Shutting down...');
+  server.close(() => {
+    process.exit(1);
+  });
 });
