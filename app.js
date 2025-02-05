@@ -64,6 +64,10 @@ const userRouter = require('./routes/userRoutes');
 
 app.use('/api/v1/users', userRouter);
 
+const reviewRouter = require('./routes/reviewRoutes');
+
+app.use('/api/v1/reviews', reviewRouter);
+
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
