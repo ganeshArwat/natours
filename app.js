@@ -6,6 +6,8 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 const AppError = require('./utils/appError');
 const golbalErrorHandler = require('./controllers/errorController');
@@ -18,13 +20,36 @@ const reviewRouter = require('./routes/reviewRoutes');
 // process.env.NODE_ENV = 'production';
 
 const app = express();
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'], // Allow fonts
+        scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'], // Allow external scripts
+        connectSrc: [
+          "'self'",
+          'http://127.0.0.1:8000',
+          'http://localhost:8000',
+        ], // Allow both IP and hostname
+      },
+    },
+  }),
+);
+
+app.use(
+  cors({
+    origin: 'http://localhost:8000', // Change this to your client URL
+    // methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true, // Allow cookies if needed
+  }),
+);
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(helmet());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -39,6 +64,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 // data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -62,6 +88,8 @@ app.use(
 
 app.use((req, res, next) => {
   req.requsetTime = new Date().toISOString();
+  console.log('cookies');
+  console.log(req.cookies);
   next();
 });
 
